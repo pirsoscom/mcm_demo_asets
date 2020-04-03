@@ -1,0 +1,45 @@
+
+apiVersion: app.ibm.com/v1alpha1
+kind: Subscription
+metadata:
+  name: k8sdemo-app-backend
+  namespace: default
+  generation: 1
+  labels:
+    app: k8sdemo-app-backend
+spec:
+  name: ''
+  channel: demo-channel/k8sdemo-channel
+  placement:
+    placementRef:
+      name: k8sdemo-placement-backend
+      kind: PlacementRule
+  packageFilter:
+    labelSelector:
+      matchLabels:
+        app: k8sdemo-app-backend
+
+
+
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: PlacementRule
+metadata:
+  name: k8sdemo-placement-backend
+  namespace: default
+  generation: 1
+  labels:
+    app: k8sdemo-app-backend
+spec:
+  clusterLabels:
+    matchLabels:
+      environment: Prod
+      region: EU
+  clusterReplicas: 2
+
+
+
+
+
+
+

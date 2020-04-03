@@ -1,0 +1,305 @@
+
+apiVersion: app.k8s.io/v1beta1
+kind: Application
+metadata:
+  name: k8sdemo-app
+  namespace: default
+  generation: 1
+  labels:
+    app: k8sdemo-app
+spec:
+  componentKinds:
+    - group: app.ibm.com
+      kind: Subscription
+  descriptor: {}
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - k8sdemo-app
+          - k8sdemo-app-backend
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: Subscription
+metadata:
+  name: k8sdemo-app
+  namespace: default
+  generation: 1
+  labels:
+    app: k8sdemo-app
+spec:
+  name: ''
+  channel: demo-channel/k8sdemo-channel
+  placement:
+    placementRef:
+      name: k8sdemo-placement
+      kind: PlacementRule
+  packageFilter:
+    labelSelector:
+      matchLabels:
+        app: k8sdemo-app      
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: PlacementRule
+metadata:
+  name: k8sdemo-placement
+  namespace: default
+  generation: 1
+  labels:
+    app: k8sdemo-app
+spec:
+  clusterLabels:
+    matchLabels:
+      environment: Dev
+      region: EU
+  clusterReplicas: 1
+
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: Channel
+metadata:
+  name: k8sdemo-channel
+  namespace: demo-channel
+  generation: 1
+  labels:
+    app: k8sdemo-app
+spec:
+  sourceNamespaces:
+  - demo-channel
+  type: Namespace
+  pathname: demo-channel
+  gates:
+    annotations:
+      dev-ready: approved
+---
+
+apiVersion: app.ibm.com/v1alpha1
+kind: Subscription
+metadata:
+  name: k8sdemo-app-backend
+  namespace: default
+  generation: 1
+  labels:
+    app: k8sdemo-app-backend
+spec:
+  name: ''
+  channel: demo-channel/k8sdemo-channel
+  placement:
+    placementRef:
+      name: k8sdemo-placement-backend
+      kind: PlacementRule
+  packageFilter:
+    labelSelector:
+      matchLabels:
+        app: k8sdemo-app-backend
+
+
+
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: PlacementRule
+metadata:
+  name: k8sdemo-placement-backend
+  namespace: default
+  generation: 1
+  labels:
+    app: k8sdemo-app-backend
+spec:
+  clusterLabels:
+    matchLabels:
+      environment: Dev
+      region: EU
+  clusterReplicas: 1
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: Deployable
+metadata:
+  name: k8sdemo-app
+  namespace: demo-channel
+  generation: 1
+  labels:
+    app: k8sdemo-app
+spec:
+  template:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    metadata:
+      name: k8sdemo-app
+      namespace: default
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: k8sdemo-app
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxUnavailable: "30%"
+          maxSurge: "90%"
+      template:
+        metadata:
+          labels:
+            app: k8sdemo-app
+            version: current
+        spec:
+          containers:
+          - name: k8sdemo-app
+            image: niklaushirt/k8sdemo:1.0.0
+            imagePullPolicy: Always 
+            livenessProbe:
+              httpGet:
+                path: /health
+                port: 3000
+              initialDelaySeconds: 30
+              periodSeconds: 10
+            readinessProbe:
+              httpGet:
+                path: /health
+                port: 3000
+              initialDelaySeconds: 10
+              periodSeconds: 10
+            ports:
+            - containerPort: 3000
+            resources:
+              requests:
+                cpu: "50m"
+                memory: "50Mi"
+              limits:
+                cpu: "50m"
+                memory: "50Mi"
+            env:
+              - name: PORT
+                value : "3000"
+              - name: APPLICATION_NAME
+                value: k8sdemo-app
+              - name: BACKEND_URL
+                value: http://k8sdemo-app-backend-service.default.svc:3000/api
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: Deployable
+metadata:
+  name: k8sdemo-service
+  namespace: demo-channel
+  generation: 1
+  labels:
+    app: k8sdemo-app
+spec:
+  template:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: k8sdemo-service
+    spec:
+      selector:
+        app: k8sdemo-app
+      ports:
+        - protocol: TCP
+          port: 3000
+          targetPort: 3000
+          nodePort: 32123
+      type: NodePort
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: Deployable
+metadata:
+  name: k8sdemo-app-backend
+  namespace: demo-channel
+  generation: 1
+  labels:
+    app: k8sdemo-app-backend
+spec:
+  template:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    metadata:
+      name: k8sdemo-app-backend
+      namespace: default
+    spec:
+      replicas: 2
+      selector:
+        matchLabels:
+          app: k8sdemo-app-backend
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxUnavailable: "30%"
+          maxSurge: "90%"
+      template:
+        metadata:
+          labels:
+            app: k8sdemo-app-backend
+            version: current
+        spec:
+          containers:
+          - name: k8sdemo-app-backend
+            image: niklaushirt/k8sdemo-backend:1.0.0
+            imagePullPolicy: IfNotPresent 
+            livenessProbe:
+              httpGet:
+                path: /health
+                port: 3000
+              initialDelaySeconds: 30
+              periodSeconds: 10
+            readinessProbe:
+              httpGet:
+                path: /health
+                port: 3000
+              initialDelaySeconds: 10
+              periodSeconds: 10
+            ports:
+            - containerPort: 3000
+            resources:
+              requests:
+                cpu: "50m"
+                memory: "50Mi"
+              limits:
+                cpu: "50m"
+                memory: "50Mi"
+            env:
+              - name: PORT
+                value : "3000"
+              - name: APPLICATION_NAME
+                value: k8sdemo-app-backend
+              - name: BACKEND_MESSAGE
+                value: "Hi there from the MCM Demo App..."
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: Deployable
+metadata:
+  name: k8sdemo-app-backend-service
+  namespace: demo-channel
+  generation: 1
+  labels:
+    app: k8sdemo-app-backend
+spec:
+  template:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: k8sdemo-app-backend-service
+    spec:
+      selector:
+        app: k8sdemo-app-backend
+      ports:
+        - protocol: TCP
+          port: 3000
+          targetPort: 3000
+          nodePort: 32124
+      type: NodePort
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
