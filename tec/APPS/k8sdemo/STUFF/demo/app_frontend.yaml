@@ -1,0 +1,85 @@
+
+apiVersion: app.k8s.io/v1beta1
+kind: Application
+metadata:
+  name: k8sdemo-app
+  namespace: default
+  generation: 1
+  labels:
+    app: k8sdemo-app
+spec:
+  componentKinds:
+    - group: app.ibm.com
+      kind: Subscription
+  descriptor: {}
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - k8sdemo-app
+          - k8sdemo-app-backend
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: Subscription
+metadata:
+  name: k8sdemo-app
+  namespace: default
+  generation: 1
+  labels:
+    app: k8sdemo-app
+spec:
+  name: ''
+  channel: demo-channel/k8sdemo-channel
+  placement:
+    placementRef:
+      name: k8sdemo-placement
+      kind: PlacementRule
+  packageFilter:
+    labelSelector:
+      matchLabels:
+        app: k8sdemo-app      
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: PlacementRule
+metadata:
+  name: k8sdemo-placement
+  namespace: default
+  generation: 1
+  labels:
+    app: k8sdemo-app
+spec:
+  clusterLabels:
+    matchLabels:
+      environment: Dev
+      region: EU
+  clusterReplicas: 1
+
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: Channel
+metadata:
+  name: k8sdemo-channel
+  namespace: demo-channel
+  generation: 1
+  labels:
+    app: k8sdemo-app
+spec:
+  sourceNamespaces:
+  - demo-channel
+  type: Namespace
+  pathname: demo-channel
+  gates:
+    annotations:
+      dev-ready: approved
+
+
+
+
+
+
+
+
+
+
+

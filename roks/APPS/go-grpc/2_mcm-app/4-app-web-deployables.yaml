@@ -6,7 +6,7 @@ metadata:
   namespace: grpcdemo-app-ns
   generation: 1
   labels:
-    app: grpcdemo-app-web
+    app: grpcdemo-app-server
 spec:
   template:
     apiVersion: extensions/v1beta1
@@ -40,7 +40,7 @@ metadata:
   namespace: grpcdemo-app-ns
   generation: 1
   labels:
-    app: grpcdemo-app-web
+    app: grpcdemo-app-server
 spec:
   template:
     apiVersion: v1
@@ -63,7 +63,7 @@ metadata:
   namespace: grpcdemo-app-ns
   generation: 1
   labels:
-    app: grpcdemo-app-web
+    app: grpcdemo-app-server
 spec:
   template:
     apiVersion: route.openshift.io/v1
@@ -87,7 +87,7 @@ metadata:
   namespace: grpcdemo-app-ns
   generation: 1
   labels:
-    app: grpcdemo-app-web
+    app: grpcdemo-app-api
 spec:
   template:
     apiVersion: extensions/v1beta1
@@ -123,7 +123,7 @@ metadata:
   namespace: grpcdemo-app-ns
   generation: 1
   labels:
-    app: grpcdemo-app-web
+    app: grpcdemo-app-api
 spec:
   template:
     apiVersion: v1
@@ -146,7 +146,7 @@ metadata:
   namespace: grpcdemo-app-ns
   generation: 1
   labels:
-    app: grpcdemo-app-web
+    app: grpcdemo-app-api
 spec:
   template:
     kind: Route
@@ -189,7 +189,7 @@ spec:
         spec:
           containers:
           - name: grpc-web
-            image: niklaushirt/grpc-web:1.0.0
+            image: niklaushirt/grpcdemo:1.0.0
             imagePullPolicy: IfNotPresent 
             ports:
             - containerPort: 3000

@@ -1,0 +1,34 @@
+apiVersion: app.ibm.com/v1alpha1
+kind: Subscription
+metadata:
+  name: grpcdemo-app-web
+  namespace: grpcdemo-app
+  generation: 1
+  labels:
+    app: grpcdemo-app-web
+spec:
+  name: ''
+  channel: grpcdemo-app-ns/grpcdemo-app-channel
+  placement:
+    placementRef:
+      name: grpcdemo-app-web-placement
+      kind: PlacementRule
+  packageFilter:
+    labelSelector:
+      matchLabels:
+        app: grpcdemo-app-web
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: PlacementRule
+metadata:
+  name: grpcdemo-app-web-placement
+  namespace: grpcdemo-app
+  generation: 1
+  labels:
+    app: grpcdemo-app-web
+spec:
+  clusterLabels:
+    matchLabels:
+      environment: Prod
+      region: EU
+  clusterReplicas: 1

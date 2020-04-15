@@ -1,0 +1,87 @@
+apiVersion: app.ibm.com/v1alpha1
+kind: Deployable
+metadata:
+  name: k8sdemo-app
+  namespace: demo-channel
+  generation: 1
+  labels:
+    app: k8sdemo-app
+spec:
+  template:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    metadata:
+      name: k8sdemo-app
+      namespace: default
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: k8sdemo-app
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxUnavailable: "30%"
+          maxSurge: "90%"
+      template:
+        metadata:
+          labels:
+            app: k8sdemo-app
+            version: current
+        spec:
+          containers:
+          - name: k8sdemo-app
+            image: niklaushirt/k8sdemo:1.0.0
+            imagePullPolicy: Always 
+            livenessProbe:
+              httpGet:
+                path: /
+                port: 3000
+              initialDelaySeconds: 10
+              periodSeconds: 30
+            readinessProbe:
+              httpGet:
+                path: /
+                port: 3000
+              initialDelaySeconds: 20
+              periodSeconds: 10
+            ports:
+            - containerPort: 3000
+            resources:
+              requests:
+                cpu: "50m"
+                memory: "50Mi"
+              limits:
+                cpu: "50m"
+                memory: "50Mi"
+            env:
+              - name: PORT
+                value : "3000"
+              - name: APPLICATION_NAME
+                value: k8sdemo-app
+              - name: BACKEND_URL
+                value: http://k8sdemo-app-backend-service-default.apps.91.121.172.228.nip.io/api
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: Deployable
+metadata:
+  name: k8sdemo-service
+  namespace: demo-channel
+  generation: 1
+  labels:
+    app: k8sdemo-app
+spec:
+  template:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: k8sdemo-service
+    spec:
+      selector:
+        app: k8sdemo-app
+      ports:
+        - protocol: TCP
+          port: 3000
+          targetPort: 3000
+          nodePort: 32123
+      type: NodePort

@@ -1,0 +1,91 @@
+apiVersion: app.ibm.com/v1alpha1
+kind: Deployable
+metadata:
+  name: k8sdemo-app-backend
+  namespace: demo-channel
+  generation: 1
+  labels:
+    app: k8sdemo-app-backend
+spec:
+  template:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    metadata:
+      name: k8sdemo-app-backend
+      namespace: default
+    spec:
+      replicas: 2
+      selector:
+        matchLabels:
+          app: k8sdemo-app-backend
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxUnavailable: "30%"
+          maxSurge: "90%"
+      template:
+        metadata:
+          labels:
+            app: k8sdemo-app-backend
+            version: current
+        spec:
+          containers:
+          - name: k8sdemo-app-backend
+            image: niklaushirt/k8sdemo-backend:1.0.0
+            imagePullPolicy: IfNotPresent 
+            livenessProbe:
+              httpGet:
+                path: /health
+                port: 3000
+              initialDelaySeconds: 30
+              periodSeconds: 10
+            readinessProbe:
+              httpGet:
+                path: /health
+                port: 3000
+              initialDelaySeconds: 10
+              periodSeconds: 10
+            ports:
+            - containerPort: 3000
+            resources:
+              requests:
+                cpu: "50m"
+                memory: "50Mi"
+              limits:
+                cpu: "50m"
+                memory: "50Mi"
+            env:
+              - name: PORT
+                value : "3000"
+              - name: APPLICATION_NAME
+                value: k8sdemo-app-backend
+              - name: BACKEND_MESSAGE
+                value: "Hi there from the MCM Demo App..."
+---
+apiVersion: app.ibm.com/v1alpha1
+kind: Deployable
+metadata:
+  name: k8sdemo-app-backend-service
+  namespace: demo-channel
+  generation: 1
+  labels:
+    app: k8sdemo-app-backend
+spec:
+  template:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: k8sdemo-app-backend-service
+    spec:
+      selector:
+        app: k8sdemo-app-backend
+      ports:
+        - protocol: TCP
+          port: 3000
+          targetPort: 3000
+          nodePort: 32124
+      type: NodePort
+
+
+
+
