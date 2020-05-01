@@ -66,5 +66,4 @@ spec:
     matchLabels:
       environment: Prod
       region: EU
-      name: rhocp-prod
   clusterReplicas: 1

@@ -199,7 +199,7 @@ spec:
               - name: APPLICATION_NAME
                 value : "grpc-web"
               - name: BACKEND_URL
-                value : "http://grpc-server-route-grpcdemo-app.apps.94.23.25.93.nip.io/get"
+                value : "http://grpc-api-route-grpcdemo-app.apps.91.121.172.228.nip.io/get"
 ---
 apiVersion: app.ibm.com/v1alpha1
 kind: Deployable

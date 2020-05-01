@@ -12,8 +12,6 @@ spec:
   - grpcdemo-app-ns
   type: Namespace
   pathname: grpcdemo-app-ns
-  gates:
-    annotations:
-      dev-ready: approved
+
 
 

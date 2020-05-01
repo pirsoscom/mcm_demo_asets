@@ -7,11 +7,6 @@ metadata:
     app: kubetoy-app
 spec:
   channel: kubetoy-channel-namespace/kubetoy-channel
-  overrides:
-    - clusterName: /
-      clusterOverrides:
-        - path: metadata.namespace
-          value: default
   packageFilter:
     labelSelector:
       matchLabels:
@@ -29,9 +24,7 @@ metadata:
   labels:
     app: kubetoy-app
 spec:
-  clusterReplicas: 1
+  clusterReplicas: 5
   clusterLabels:
     matchLabels:  
-      environment: Dev
       region: EU
-  clusterReplicas: 1
